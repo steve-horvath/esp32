@@ -8,11 +8,12 @@
 const char* ssid = "BELL147_RPT";
 const char* password = "69443A7C";
 const char* mqtt_server = "192.168.1.243";
-const int DHTPin = 16;
-#define DHTTYPE DHT22
 
 // Initialize DHT sensor.
+const int DHTPin = 16;
+#define DHTTYPE DHT22
 DHT dht(DHTPin, DHTTYPE);
+
 
 // Temporary variables
 static char celsiusTemp[7];
@@ -20,38 +21,18 @@ static char fahrenheitTemp[7];
 static char humidityTemp[7];
 
 // Client variables 
+// for web server version, can be removed????
 char linebuf[80];
 int charcount=0;
 char output;
-
-WiFiClient espClient;
-PubSubClient client(espClient);
 long lastMsg = 0;
 char msg[50];
 int value = 0;
 
-void setup_wifi() {
 
-  delay(10);
-  // We start by connecting to a WiFi network
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
-
-  WiFi.begin(ssid, password);
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-
-  randomSeed(micros());
-
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
-}
+// mqtt publish variables
+WiFiClient espClient;
+PubSubClient client(espClient);
 
 
 void reconnect() {
@@ -79,36 +60,97 @@ void reconnect() {
   }
 }
 
+
+float temperature()
+{
+        serial.println("Getting value from DHT Sensor");
+        DHT_return = 0
+
+        // Make sure that the value returned for temp is valid before moving on 
+
+        while ( t < 1 || t > 50 )
+        {
+                float t = dht.readTemperature();
+                serial.println(" Got temperature %f", t);
+        }
+
+        // Make sure that the value returned for Humidity is valid before moving on 
+
+
+        while ( h < 1 || h > 50 )
+        {
+                float h = dht.readHumidity();
+                serial.println("Got humidity %f", h);
+        }
+
+
+
+        DHT_return[0] = t
+        DHT_return[1] = h
+
+        serial.println("Temp returning is: %f deg. C", DHT_return[0]);
+        serial.println("Humidity returning is: %f %", DHT_return[1]);
+
+        return DHT_return;
+}
+
+
+void wifi_connect()
+{
+        delay(10);
+        // We start by connecting to a WiFi network
+        Serial.println();
+        Serial.print("Connecting to ");
+        Serial.println(ssid);
+
+        WiFi.begin(ssid, password);
+
+        while (WiFi.status() != WL_CONNECTED)
+        {
+                delay(500);
+                Serial.print(".");
+        }
+
+        Serial.println("");
+        Serial.println("WiFi connected");
+        Serial.println("IP address: ");
+        Serial.println(WiFi.localIP());
+}
+
+
+void publish(float *DHT_return, float *DHT_return)
+{
+
+}
+
+void DHT_sleep()
+{
+
+}
+
+
+
+// this is the actual program to run, first, setup to establish everything
+// then the loop to get the measurements and then publish them
+
 void setup() {
   // initialize the DHT sensor
   dht.begin();
-  
+
   //Initialize serial and wait for port to open:
   Serial.begin(115200);
   while(!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
-  
+
   // We start by connecting to a WiFi network
-  Serial.println();
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
-  
-  WiFi.begin(ssid, password);
-  
-  // attempt to connect to Wifi network:
-  while(WiFi.status() != WL_CONNECTED) {
-    // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
-  
+
+        while (WiFi.status() != WL_CONNECTED)
+        {
+                wifi_connect();
+        }
 }
+
 
 
 void loop() {
@@ -119,8 +161,6 @@ void loop() {
 
 
   client.loop();
-  float t = dht.readTemperature();
-  float h = dht.readHumidity();
   char msg[5];  
   long now = millis();
   if (now - lastMsg > 20000) {
