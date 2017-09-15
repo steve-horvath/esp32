@@ -25,14 +25,10 @@ int charcount=0;
 char output;
 
 WiFiClient espClient;
-PubSubClient mqtt_client(espClient);
+PubSubClient client(espClient);
 long lastMsg = 0;
 char msg[50];
 int value = 0;
-
-
-
-
 
 void setup_wifi() {
 
@@ -58,9 +54,9 @@ void setup_wifi() {
 }
 
 
-void mqtt_connect() {
+void reconnect() {
   // Loop until we're reconnected
-  while (!mqtt_client.connected()) {
+  while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Create a random client ID
     String clientId = "ESP32Client-";
@@ -68,23 +64,20 @@ void mqtt_connect() {
     Serial.println(clientId);
     // Attempt to connect
     client.setServer("192.168.1.243",1883);
-    if (mqtt_client.connect(clientId.c_str())) {
+    if (client.connect(clientId.c_str())) {
 
       Serial.println("connected");
       // Once connected, publish an announcement...
-      mqtt_client.publish("ESP32/reconnect", "Module 1 connected");
+      client.publish("ESP32/reconnect", "Module 1 connected");
     } else {
       Serial.print("failed, rc=");
-      Serial.print(mqtt_client.state());
+      Serial.print(client.state());
       Serial.println(" try again in 5 seconds");
       // Wait 5 seconds before retrying
       delay(5000);
     }
   }
 }
-
-
-
 
 void setup() {
   // initialize the DHT sensor
@@ -125,18 +118,17 @@ void mqtt_publish(int temp, int humid)
     Serial.println(t);
     Serial.println(h);
     snprintf(msg, 5, "%f", t);
-    mqtt_client.publish("temp", msg);
+    client.publish("temp", msg);
     snprintf(msg, 5, "%f", h);
-    mqtt_client.publish("humid", msg);
+    client.publish("humid", msg);
 }
 
 
 void loop() {
 
-  if (!mqtt_client.connected()) {
-    mqtt_connect();
+  if (!client.connected()) {
+    reconnect();
   }
-
   char msg[5];  
   long now = millis();
   float t = dht.readTemperature();
