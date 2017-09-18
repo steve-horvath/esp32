@@ -30,16 +30,17 @@ long lastMsg = 0;
 char msg[50];
 int value = 0;
 
-
-
-
+// Server properties
+char *mqttServer = "192.168.1.243";
+int mqttPort = 1883;
+String clientId = "ESP32-1-";
 
 void setup_wifi() {
 
   delay(10);
   // We start by connecting to a WiFi network
   Serial.println();
-  Serial.print("Connecting to ");
+  Serial.print("Wi-Fi Disconnected.  Connecting to ");
   Serial.println(ssid);
 
   WiFi.begin(ssid, password);
@@ -48,8 +49,6 @@ void setup_wifi() {
     delay(500);
     Serial.print(".");
   }
-
-  randomSeed(micros());
 
   Serial.println("");
   Serial.println("WiFi connected");
@@ -60,20 +59,23 @@ void setup_wifi() {
 
 void mqtt_connect() {
   // Loop until we're reconnected
-  while (!mqtt_client.connected()) {
+  while (!mqtt_client.connected()) 
+  {
     Serial.print("Attempting MQTT connection...");
     // Create a random client ID
-    String clientId = "ESP32Client-";
+    randomSeed(micros());
     clientId += String(random(0xffff), HEX);
     Serial.println(clientId);
     // Attempt to connect
-    client.setServer("192.168.1.243",1883);
-    if (mqtt_client.connect(clientId.c_str())) {
-
-      Serial.println("connected");
+    mqtt_client.setServer(mqttServer,mqttPort);
+    if (mqtt_client.connect(clientId.c_str())) 
+    {
+      Serial.println("MQTT connection");// to %d:%i", mqttServer,mqttPort);
       // Once connected, publish an announcement...
       mqtt_client.publish("ESP32/reconnect", "Module 1 connected");
-    } else {
+    } 
+    else 
+    {
       Serial.print("failed, rc=");
       Serial.print(mqtt_client.state());
       Serial.println(" try again in 5 seconds");
@@ -119,31 +121,27 @@ void setup() {
 
 void mqtt_publish(int temp, int humid)
 {
-    lastMsg = now;
-    ++value;
     Serial.print("Publish message: ");
-    Serial.println(t);
-    Serial.println(h);
-    snprintf(msg, 5, "%f", t);
+    Serial.println(temp);
+    Serial.println(humid);
+    snprintf(msg, 5, "%f", temp);
     mqtt_client.publish("temp", msg);
-    snprintf(msg, 5, "%f", h);
+    snprintf(msg, 5, "%f", humid);
     mqtt_client.publish("humid", msg);
 }
 
 
 void loop() {
-
+  if (WiFi.status() != WL_CONNECTED) {
+    setup_wifi();
+  }
+  
   if (!mqtt_client.connected()) {
     mqtt_connect();
   }
 
-  char msg[5];  
-  long now = millis();
   float t = dht.readTemperature();
   float h = dht.readHumidity();
-  if (now - lastMsg > 20000) {
-        mqtt_publish(t, h)
-  }
-
-
+  mqtt_publish(t, h);
+  delay(30000);
 }
