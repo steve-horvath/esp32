@@ -47,7 +47,7 @@ void setup_wifi() {
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
+    Serial.println("connecting.");
   }
 
   Serial.println("");
@@ -122,11 +122,15 @@ void setup() {
 void mqtt_publish(int temp, int humid)
 {
     Serial.print("Publish message: ");
-    Serial.println(temp);
-    Serial.println(humid);
-    snprintf(msg, 5, "%f", temp);
+//    Serial.println("Temp is reading as %d",temp);
+//    Serial.println("Humid is reading as %d",humid);
+    snprintf(msg, 5, "%d", temp);
+    Serial.print("Temp Messge:  ");
+    Serial.println(msg);
     mqtt_client.publish("temp", msg);
-    snprintf(msg, 5, "%f", humid);
+    snprintf(msg, 5, "%d", humid);
+    Serial.print("Humid Messge:  ");
+    Serial.println(msg);
     mqtt_client.publish("humid", msg);
 }
 
@@ -143,5 +147,7 @@ void loop() {
   float t = dht.readTemperature();
   float h = dht.readHumidity();
   mqtt_publish(t, h);
+  Serial.println("starting delay");
   delay(30000);
+  Serial.println("end delay");
 }
