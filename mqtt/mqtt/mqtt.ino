@@ -55,8 +55,8 @@ void setup_wifi() {
 
   Serial.println("");
   Serial.print(millis());
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
+  Serial.print("  WiFi connected - ");
+  Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 }
 
@@ -66,25 +66,27 @@ void mqtt_connect() {
   while (!mqtt_client.connected()) 
   {
     Serial.print(millis());
-    Serial.print("Attempting MQTT connection...");
+    Serial.print("  Attempting MQTT connection...");
     // Create a random client ID
     clientId=clientName;
     randomSeed(micros());
     clientId += String(random(0xffff), HEX);
+    Serial.print(millis());
+    Serial.print("  Client ID - ");
     Serial.println(clientId);
     // Attempt to connect
     mqtt_client.setServer(mqttServer,mqttPort);
     if (mqtt_client.connect(clientId.c_str())) 
     {
       Serial.print(millis());
-      Serial.println(" MQTT connection");// to %d:%i", mqttServer,mqttPort);
+      Serial.println("  MQTT connection");// to %d:%i", mqttServer,mqttPort);
       // Once connected, publish an announcement...
       mqtt_client.publish("ESP32/reconnect", "Module 1 connected");
     } 
     else 
     {
       Serial.print(millis());
-      Serial.print(" failed, rc=");
+      Serial.print("  failed, rc=");
       Serial.print(mqtt_client.state());
       Serial.println(" try again in 5 seconds");
       // Wait 5 seconds before retrying
@@ -120,12 +122,12 @@ void setup() {
     // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
     delay(500);
     Serial.print(millis());
-    Serial.println(" .");
+    Serial.println("  Connecting . . . ");
   }
   Serial.println("");
   Serial.print(millis());
-  Serial.println("  WiFi connected");
-  Serial.println("IP address: ");
+  Serial.print("  WiFi connected - ");
+  Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
   
 }
@@ -142,7 +144,7 @@ void mqtt_publish(int temp, int humid)
     mqtt_client.publish("temp", msg);
     snprintf(msg, 5, "%d", humid);
     Serial.print(millis());
-    Serial.print("Humid Messge:  ");
+    Serial.print("  Humid Messge:  ");
     Serial.println(msg);
     mqtt_client.publish("humid", msg);
 }
@@ -160,7 +162,8 @@ void loop() {
   float h = dht.readHumidity();
   mqtt_publish(t, h);
   Serial.print(millis());
-  Serial.println("  starting delay");
+  Serial.println("  Starting Delay");
   delay(30000);
-  Serial.println("end delay");
+  Serial.print(millis());
+  Serial.println("  End Delay");
 }
