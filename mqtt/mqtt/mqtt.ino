@@ -5,7 +5,7 @@
 
 // Update these with values suitable for your network.
 
-const char* ssid = "BELL147_RPT";
+const char* ssid = "BELL147";
 const char* password = "69443A7C";
 const char* mqtt_server = "192.168.1.243";
 const int DHTPin = 16;
@@ -50,7 +50,8 @@ void setup_wifi() {
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.println("connecting.");
+    Serial.print(millis());
+    Serial.println("  connecting.");
   }
 
   Serial.println("");
@@ -66,7 +67,7 @@ void mqtt_connect() {
   while (!mqtt_client.connected()) 
   {
     Serial.print(millis());
-    Serial.print("  Attempting MQTT connection...");
+    Serial.println("  Attempting MQTT connection...");
     // Create a random client ID
     clientId=clientName;
     randomSeed(micros());
@@ -134,9 +135,11 @@ void setup() {
 
 void mqtt_publish(int temp, int humid)
 {
-    Serial.print("Publish message: ");
-//    Serial.println("Temp is reading as %d",temp);
-//    Serial.println("Humid is reading as %d",humid);
+//    Serial.print("Publish message: ");
+    Serial.print("Temp is reading as ");
+    Serial.println(temp);
+    Serial.print("Humid is reading as ");
+    Serial.println(humid);
     snprintf(msg, 5, "%d", temp);
     Serial.print(millis());
     Serial.print("  Temp Messge:  ");
@@ -158,8 +161,10 @@ void loop() {
   if (!mqtt_client.connected()) {
     mqtt_connect();
   }
-  float t = dht.readTemperature();
-  float h = dht.readHumidity();
+
+  float t=dht.readTemperature();;
+  float h=dht.readHumidity();;
+
   mqtt_publish(t, h);
   Serial.print(millis());
   Serial.println("  Starting Delay");
