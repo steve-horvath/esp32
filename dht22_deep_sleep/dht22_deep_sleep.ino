@@ -50,6 +50,9 @@
 
 #define MQTT_VERSION MQTT_VERSION_3_1_1
 
+#define uS_TO_S_FACTOR 1000000  /* Conversion factor for micro seconds to seconds */
+#define TIME_TO_SLEEP  5        /* Time ESP32 will go to sleep (in seconds) */
+
 // Wifi: SSID and password
 const char* WIFI_SSID = "BELL147";
 const char* WIFI_PASSWORD = "69443A7C";
@@ -117,16 +120,40 @@ void reconnect() {
     }
   }
 }
+/*
+Method to print the reason by which ESP32
+has been awaken from sleep
+*/
+void print_wakeup_reason(){
+  esp_deep_sleep_wakeup_cause_t wakeup_reason;
+
+  wakeup_reason = esp_deep_sleep_get_wakeup_cause();
+
+  switch(wakeup_reason)
+  {
+    case 1  : Serial.println("Wakeup caused by external signal using RTC_IO"); break;
+    case 2  : Serial.println("Wakeup caused by external signal using RTC_CNTL"); break;
+    case 3  : Serial.println("Wakeup caused by timer"); break;
+    case 4  : Serial.println("Wakeup caused by touchpad"); break;
+    case 5  : Serial.println("Wakeup caused by ULP program"); break;
+    default : Serial.println("Wakeup was not caused by deep sleep"); break;
+  }
+}
 
 void setup() {
   // init the serial
   Serial.begin(115200);
 
   dht.begin();
+  esp_deep_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+    
 
   // init the WiFi connection
   Serial.println();
   Serial.println();
+  //Print the wakeup reason for ESP32
+  Serial.println("Waking Up");
+  print_wakeup_reason();
   Serial.print("INFO: Connecting to ");
   WiFi.mode(WIFI_STA);
   Serial.println(WIFI_SSID);
@@ -145,9 +172,7 @@ void setup() {
   // init the MQTT connection
   client.setServer(MQTT_SERVER_IP, MQTT_SERVER_PORT);
   client.setCallback(callback);
-}
 
-void loop() {
   if (!client.connected()) {
     reconnect();
   }
@@ -173,7 +198,14 @@ void loop() {
 
   Serial.println("INFO: Closing the Wifi connection");
   WiFi.disconnect();
-
-  ESP.deepSleep(SLEEPING_TIME_IN_SECONDS * 1000000); //, WAKE_RF_DEFAULT);
-  delay(500); // wait for deep sleep to happen
+  
+  Serial.println("Going to sleep now");
+  esp_deep_sleep_start();
+  delay(500); // wait for deep sleep to happen - Should never run.
 }
+
+void loop(){
+
+}
+
+
