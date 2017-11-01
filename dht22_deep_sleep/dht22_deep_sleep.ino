@@ -51,7 +51,7 @@
 #define MQTT_VERSION MQTT_VERSION_3_1_1
 
 #define uS_TO_S_FACTOR 1000000  /* Conversion factor for micro seconds to seconds */
-#define TIME_TO_SLEEP  5        /* Time ESP32 will go to sleep (in seconds) */
+#define TIME_TO_SLEEP  600        /* Time ESP32 will go to sleep (in seconds) */
 
 // Wifi: SSID and password
 const char* WIFI_SSID = "BELL147";
